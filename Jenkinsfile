@@ -20,17 +20,28 @@ pipeline {
 		}
 		
 
-		stage('Deploy to staging environment') {
-			steps {
-				deploy adapters: [tomcat9(credentialsId: 'ce671af0-748c-431d-beb8-294eeb06c7f8', path: '', url: 'http://localhost:8211')], contextPath: null, war: '**/*.war'
-			}
-			post {
-				success {
-					echo 'Application is deployed to staging environment successfully...'
+		stage('Deploy to staging and checking code quality') {
+			parallel {
+				stage('Deploy to staging') {
+					steps {
+						deploy adapters: [tomcat9(credentialsId: 'ce671af0-748c-431d-beb8-294eeb06c7f8', path: '', url: 'http://localhost:8211')], contextPath: null, war: '**/*.war'
+					}
+					post {
+						success {
+							echo 'Application is deployed to staging environment successfully...'
+						}
+						failure {
+							echo 'Failed to deploy an application...'
+						}
+					}
 				}
-				failure {
-					echo 'Failed to deploy an application...'
-				}
+				
+				stage('static analysis of code') {
+					steps {
+						bat label: '', script: 'mvn checkstyle:checkstyle'
+						checkstyle canComputeNew: false, defaultEncoding: '', healthy: '', pattern: '', unHealthy: ''
+					}
+				}			
 			}
 		}
 		
