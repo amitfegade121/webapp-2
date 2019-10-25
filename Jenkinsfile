@@ -33,6 +33,20 @@ pipeline {
 				}
 			}
 		}
+		
+		stage('Deploy to production environment') {
+			steps {
+				deploy adapters: [tomcat9(credentialsId: '82d9d858-2eb8-4068-84e3-f0b2bb4a0da8', path: '', url: 'http://localhost:8212')], contextPath: null, war: '**/*.war'
+			}
+			post {
+				success {
+					echo 'Application is deployed to production environment successfully...'
+				}
+				failure {
+					echo 'Failed to deploy an application...'
+				}
+			}
+		}
 	}
 }
 
